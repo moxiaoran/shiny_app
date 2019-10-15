@@ -1,0 +1,76 @@
+---
+title: "PG&E Power Shutdown"
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: columns
+    vertical_layout: fill
+    source_code: embed
+---
+
+```{r setup, include=FALSE}
+library(flexdashboard)
+```
+
+Column {data-width=650}
+-----------------------------------------------------------------------
+
+### Area been Affected In Oct. 9, 2019
+
+```{r message=F, warning=F, include = FALSE}
+library(tidyverse)
+library(leaflet)
+library(sf)
+library(DT)
+library(shiny)
+library(leaflet.extras)
+
+# pge close location
+pge <- st_read("/Users/yifeiliu/Documents/R/data/EDA/Blog_draft/pge/pge_simple.gpkg")
+pal <- colorNumeric(palette = rcartocolor::carto_pal(7, "PinkYl") , NULL)
+# CA zip population
+cali_comp <- read_sf("/Users/yifeiliu/Documents/R/data/EDA/Blog_draft/pge/cali_comp.gpkg")
+cali_df <- read_csv("/Users/yifeiliu/Documents/R/data/EDA/Blog_draft/pge/cali_comp.csv")
+labs <- lapply(seq(nrow(cali_df)), function(i) {
+  paste0('<p>', "City: ",cali_df[i, "city"],'<p></p>',
+         "Zip Code: ",cali_df[i, "ZCTA5CE10"],'<p></p>',
+         "Population: ",cali_df[i, "pop"], '<p></p>',
+         "Affect or not: ", cali_df[i, "affect"], '<p></p>',
+         "Affect Area: ", cali_df[i, "Affect_area"], " Acre",'<p></p>',
+         "% of Area Affected: ", cali_df[i, "pct"])
+})
+```
+
+```{r}
+leaflet(options = leafletOptions(dragging = F,
+                                 minZoom = 5)) %>%
+   addPolygons(data = pge, fillColor = "black", fillOpacity = 0.65, color = "black", 
+              weight = 1) %>%
+  addPolygons(data = cali_comp, stroke = FALSE, smoothFactor = 0.3, fillOpacity = 0.7, color = "#03F", 
+              fillColor = ~pal(pop),
+              label = lapply(labs, htmltools::HTML)) %>%
+  addProviderTiles("OpenStreetMap.BlackAndWhite") %>%
+  addResetMapButton()
+```
+
+
+Column {data-width=350}
+-----------------------------------------------------------------------
+
+### Affect area data table
+
+```{r}
+
+info_clean <- cali_df %>%
+  select(city, ZCTA5CE10, affect, Affect_area, pct, pop, household) %>%
+  setNames(c("City", "Zip", "Affect", "Affect Area", "# of Area Affected", "Population", "# Household"))
+
+datatable(info_clean,
+          caption = htmltools::tags$caption(
+    style = 'caption-side: bottom; text-align: center;',
+    'Data Source:', htmltools::em('Data.gov | PG&E')
+  ))
+
+```
+
+
+

@@ -1,0 +1,10 @@
+name: pge_shutdown
+title:
+username:
+account: moxiaoran
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 1332704
+bundleId: 2502901
+url: https://moxiaoran.shinyapps.io/pge_shutdown/
+when: 1571167234.7746
